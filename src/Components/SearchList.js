@@ -10,14 +10,11 @@ const SearchList = () => {
     const [searchList, setSearchList] = useState([]);
 
     const getSearchList = (param) => {
-
-        console.log(param.q)
         axios.get("https://www.googleapis.com/youtube/v3/search?",{
             params: param
         })
         .then(({data}) => {
             setSearchList(data.items)
-            console.log(data)
         })
     }
 
@@ -40,14 +37,14 @@ const SearchList = () => {
                 onBlur={() => {setFocused(false)}}
                 onChange={e => {setSearchWord(e.target.value)}}
             ></input>
-            <div className="search-button-selected" onClick={() => {getSearchList(optionParams)}}></div>
+            {/* <div className="search-button-selected" onClick={() => {getSearchList(optionParams)}}></div> */}
             <div className="search-card-list">
                 {searchList.map((data) => (<SearchCard 
                 thumbnail={data.snippet.thumbnails.default.url} 
                 title={data.snippet.title}
                 />))}
             </div>
-            {/* {focused ? <div className="search-button-selected" onClick={() => {getSearchList(optionParams)}}></div> : <div className="search-button"></div>} */}
+            {focused ? <div className="search-button-selected" onClick={() => {getSearchList(optionParams)}}></div> : <div className="search-button"></div>}
             
         </div>
     );
