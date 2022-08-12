@@ -6,7 +6,8 @@ import SearchList from './Components/SearchList';
 import PlayList from './Components/PlayList';
 import PlayBar from './Components/PlayBar';
 
-const socket = io.connect('http://61.255.79.207:3001/')
+const serverIP = process.env.REACT_APP_SERVER_ADDRESS
+const socket = io.connect(serverIP)
 
 function App() {
 
@@ -14,12 +15,11 @@ function App() {
     const [currentPlayId, setCurrentPlayId] = useState();
 
     useEffect(() => {
-        console.log("effect")
-        axios.get("http://61.255.79.207:3001/")
+        axios.get(serverIP)
         .then((data) => {
-            console.log(data)
             setCurrentPlayId(data.data.currentPlayId)
             data.data.playlist.map(item => {
+                console.log(item)
                 setPlaylist(state => state.concat(
                     {
                         id: item.id,
@@ -30,27 +30,26 @@ function App() {
                 ))
             })
         })
+        socket.on("add-playlist", data => {
+            setPlaylist(state => state.concat(
+                {
+                    id: data.id,
+                    title: data.title, 
+                    url: data.url, 
+                    thumbnail: data.thumbnail
+                }
+            ))
+        })
+    
+        socket.on("change-currentplayid", data => {
+            setCurrentPlayId(data)
+        })
     },[])
-
-    socket.on("add-playlist", data => {
-        setPlaylist(state => state.concat(
-            {
-                id: data.id,
-                title: data.title, 
-                url: data.url, 
-                thumbnail: data.thumbnail
-            }
-        ))
-    })
-
-    socket.on("change-currentplayid", data => {
-        setCurrentPlayId(data)
-    })
 
     return (
         <div className="App">
             <PlayList socket={socket} playlist={playlist} setPlaylist={setPlaylist} currentPlayId={currentPlayId}/>
-            <SearchList/>
+            <SearchList socket={socket}/>
             <PlayBar socket={socket} playlist={playlist} currentPlayId={currentPlayId}/>
         </div>
     );

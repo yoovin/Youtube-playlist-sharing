@@ -1,22 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react'
 import ReactPlayer from 'react-player'
+import {faPlay, faPause, faVideo, faVideoSlash} from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 const PlayBar = (props) => {
 
-    const [currentProgress, setCurrentProgress] = useState(0);
-    const [volume, setVolume] = useState(0);
-    const [play, setPlay] = useState(true);
-    const [isMuted, setIsMuted] = useState(true);
-    const [title, setTitle] = useState("");
-    const [url, setUrl] = useState("https://www.youtube.com/watch?v=ikgEKP3tVqo");
-    const player = useRef();
+    const [currentProgress, setCurrentProgress] = useState(0)
+    const [volume, setVolume] = useState(0)
+    const [play, setPlay] = useState(true)
+    const [isMuted, setIsMuted] = useState(true)
+    const [title, setTitle] = useState("")
+    const [url, setUrl] = useState("https://www.youtube.com/watch?v=ikgEKP3tVqo")
+    const [isVideoVisible, setIsVideoVisible] = useState(false)
+    const player = useRef()
 
     useEffect(() => {
-
-    },[])
-
-    useEffect(() => {
-        console.log("playid바뀜")
         props.playlist.map(item => {
             if(item.id == props.currentPlayId){
                 setUrl(item.url)
@@ -26,13 +24,15 @@ const PlayBar = (props) => {
     },[props.currentPlayId])
 
     const onChangeBar = (e) => {
-        // setCurrentProgress(e.target.value)
-        // player.current.seekTo(parseFloat(e.target.value))
         props.socket.emit("change-duration", parseFloat(e.target.value))
     }
 
     const onMusicEnd = () => {
-
+        if(props.currentPlayId == props.playlist[props.playlist.length - 1].id){ // 플레이리스트 마지막곡이면 처음으로 돌아감
+            props.socket.emit("change-currentplayid", props.playlist[0].id)
+        }else{
+            props.socket.emit("change-currentplayid", props.currentPlayId + 1)
+        }
     }
 
     const onChangePlay = () => {
@@ -49,12 +49,10 @@ const PlayBar = (props) => {
     })
 
     props.socket.on("play-event", data => {
-        console.log(data)
         setPlay(data)
     })
 
     props.socket.on("change-url", data => {
-        console.log(data)
         setUrl(data)
         player.current.seekTo(parseFloat(0))
     })
@@ -71,8 +69,7 @@ const PlayBar = (props) => {
             max="1"
             step="any"
             type="range"/>
-
-            <div className="on-off-button" onClick={() => onChangePlay()}></div>
+            <FontAwesomeIcon className="on-off-button" icon={play? faPause: faPlay} onClick={() => onChangePlay()} />
             <input 
             className="volume-bar"
             value={volume}
@@ -84,19 +81,31 @@ const PlayBar = (props) => {
             max="1"
             step="any"
             type="range"/>
-
-            <ReactPlayer 
-            ref={player}
-            className="player" 
-            muted={isMuted}
-            url={url} 
-            width="0px"
-            playing={play}
-            volume={volume}
-            onEnded={onMusicEnd}
-            />
+            <FontAwesomeIcon className="video-button" icon={isVideoVisible? faVideoSlash: faVideo} 
+            onClick={() => {
+                isVideoVisible
+                ? setIsVideoVisible(false)
+                : setIsVideoVisible(true)
+            }} />
+            <div className="player">
+                <ReactPlayer 
+                ref={player}
+                className="player"
+                muted={isMuted}
+                url={url}
+                width={
+                    isVideoVisible
+                    ? "100%"
+                    : "0px"
+                }
+                playing={play}
+                volume={volume}
+                onEnded={onMusicEnd}
+                />
+            </div>
+            
         </div>
     );
 };
 
-export default PlayBar;
+export default PlayBar

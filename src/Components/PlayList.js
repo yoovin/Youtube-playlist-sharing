@@ -9,6 +9,8 @@ const PlayList = (props) => {
     const [searchWord, setSearchWord] = useState("");
 
     const getInfoFromUrl = (param) => {
+        if (param.id === undefined) return
+        param.id = param.id.substring(0, 11)
         axios.get("https://www.googleapis.com/youtube/v3/videos?",{
             params: param
         })
@@ -24,7 +26,10 @@ const PlayList = (props) => {
     }
 
     let optionParams = {
-        id: searchWord.split("v=")[1],
+        id:
+        searchWord.includes("v=")?
+        searchWord.split("v=")[1]:
+        searchWord.split("/")[3],
         part: "snippet",
         key: apiKey,
         regionCode:"KR",
@@ -39,7 +44,7 @@ const PlayList = (props) => {
                 onChange={e => {setSearchWord(e.target.value)}}
             />
             <div className="playlist-button"
-                onClick={() => getInfoFromUrl(optionParams)}></div>
+                onClick={() => getInfoFromUrl(optionParams)}>추가</div>
             <div className="playlist-card-list">
                 {props.playlist.map(({url, thumbnail, title, id}) => (<PlayCard title={title} url={url} thumbnail={thumbnail} id={id} socket={props.socket} currentPlayId={props.currentPlayId}/>))}
             </div>
